@@ -1,0 +1,228 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <chrono>
+
+using namespace std;
+
+struct Metrics {
+    long long sravneniya = 0;
+    long long prisvaivaniya = 0;
+};
+
+void merge(vector<int>& a, int left, int mid, int right, Metrics& m) {
+    vector<int> temp;
+    int i = left, j = mid;
+
+    while (i < mid && j < right) {
+        m.sravneniya++;
+        if (a[i] <= a[j]) {
+            temp.push_back(a[i++]);
+        }
+        else {
+            temp.push_back(a[j++]);
+        }
+        m.prisvaivaniya++;
+    }
+
+    while (i < mid) {
+        temp.push_back(a[i++]);
+        m.prisvaivaniya++;
+    }
+
+    while (j < right) {
+        temp.push_back(a[j++]);
+        m.prisvaivaniya++;
+    }
+
+    for (int k = 0; k < temp.size(); k++) {
+        a[left + k] = temp[k];
+    }
+}
+
+void directMergeSort(vector<int>& a, Metrics& m) {
+    int n = a.size();
+
+    for (int width = 1; width < n; width *= 2) {
+        for (int i = 0; i < n; i += 2 * width) {
+            int left = i;
+            int mid = min(i + width, n);
+            int right = min(i + 2 * width, n);
+
+            if (mid < right) {
+                merge(a, left, mid, right, m);
+            }
+        }
+    }
+}
+
+vector<pair<int, int>> findRuns(vector<int>& a) {
+    vector<pair<int, int>> runs;
+    int n = a.size();
+
+    int start = 0;
+    for (int i = 1; i <= n; i++) {
+        if (i == n || a[i] < a[i - 1]) {
+            runs.push_back({ start, i });
+            start = i;
+        }
+    }
+    return runs;
+}
+
+
+void naturalMergeSort(vector<int>& a, Metrics& m) {
+    int n = a.size();
+
+    while (true) {
+        auto runs = findRuns(a);
+
+        if (runs.size() <= 1) break;
+
+        for (int i = 0; i + 1 < runs.size(); i += 2) {
+            int left = runs[i].first;
+            int mid = runs[i].second;
+            int right = runs[i + 1].second;
+
+            merge(a, left, mid, right, m);
+        }
+    }
+}
+
+
+vector<int> generateArray(int size) {
+    vector<int> a(size);
+    for (int i = 0; i < size; i++) {
+        a[i] = rand() % 1000;
+    }
+    return a;
+}
+
+
+vector<int> readFromFile(string filename) {
+    vector<int> a;
+    ifstream file(filename);
+
+    int x;
+    while (file >> x) {
+        a.push_back(x);
+    }
+
+    return a;
+}
+
+
+void printArray(vector<int>& a) {
+    for (int x : a) cout << x << " ";
+    cout << endl;
+}
+
+int main() {
+    vector<int> a;
+
+    int choice;
+
+    cout << "1 - Generate array\n";
+    cout << "2 - Enter array manually\n";
+    cout << "3 - Load from file\n";
+    cout << "Choice: ";
+    cin >> choice;
+
+    if (choice == 1) {
+        int n;
+        cout << "Array size: ";
+        cin >> n;
+        a = generateArray(n);
+    }
+    else if (choice == 2) {
+        int n;
+        cout << "Array size: ";
+        cin >> n;
+        a.resize(n);
+        cout << "Enter elements:\n";
+        for (int i = 0; i < n; i++) {
+            cin >> a[i];
+        }
+    }
+    else if (choice == 3) {
+        string filename;
+        cout << "File name: ";
+        cin >> filename;
+        a = readFromFile(filename);
+    }
+    else {
+        cout << "Invalid choice\n";
+        return 0;
+    }
+
+    if (a.empty()) {
+        cout << "Array is empty\n";
+        return 0;
+    }
+
+    int mode;
+    cout << "\n1 Direct merge sort\n";
+    cout << "2 Natural merge sort\n";
+    cout << "3 both\n";
+    cout << "Choice: ";
+    cin >> mode;
+
+    if (mode == 1 || mode == 2) {
+        Metrics m;
+
+        auto start = chrono::high_resolution_clock::now();
+
+        if (mode == 1) {
+            directMergeSort(a, m);
+        }
+        else {
+            naturalMergeSort(a, m);
+        }
+
+        auto end = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+
+        cout << "\nSorted array:\n";
+        printArray(a);
+
+        cout << "Time: " << duration.count() << " ms\n";
+        cout << "Comparisons: " << m.sravneniya << endl;
+        cout << "Assignments: " << m.prisvaivaniya << endl;
+    }
+    else if (mode == 3) {
+        vector<int> a1 = a;
+        vector<int> a2 = a;
+
+        Metrics m1, m2;
+
+        auto start1 = chrono::high_resolution_clock::now();
+        directMergeSort(a1, m1);
+        auto end1 = chrono::high_resolution_clock::now();
+
+        auto start2 = chrono::high_resolution_clock::now();
+        naturalMergeSort(a2, m2);
+        auto end2 = chrono::high_resolution_clock::now();
+
+        auto time1 = chrono::duration_cast<chrono::milliseconds>(end1 - start1);
+        auto time2 = chrono::duration_cast<chrono::milliseconds>(end2 - start2);
+
+        cout << "\n=== Direct merge sort ===\n";
+        cout << "Time: " << time1.count() << " ms\n";
+        cout << "Comparisons: " << m1.sravneniya << endl;
+        cout << "Assignments: " << m1.prisvaivaniya << endl;
+
+        cout << "\n=== Natural merge sort ===\n";
+        cout << "Time: " << time2.count() << " ms\n";
+        cout << "Comparisons: " << m2.sravneniya << endl;
+        cout << "Assignments: " << m2.prisvaivaniya << endl;
+
+        cout << "\nSorted array:\n";
+        printArray(a1);
+    }
+    else {
+        cout << "Invalid choice\n";
+    }
+
+    return 0;
+}
