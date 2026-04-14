@@ -104,10 +104,51 @@ void detach(Task* x) {
     if (x->prev) x->prev->next = x->next;
     else head = x->next;
 
-    if (x->next) x->next->prev = x->prev;
-    else tail = x->prev;
+    if (x->next) x->next->preint main() {
+    int q;
+    cin >> q;
 
-    x->prev = nullptr;
-    x->next = nullptr;
+    for (int i = 0; i < q; i++) {
+        string cmd;
+        cin >> cmd;
+
+        if (cmd == "add") {
+            int id, value;
+            cin >> id >> value;
+            add(id, value);
+        }
+
+        else if (cmd == "insert_after") {
+            int target_id, new_id, value;
+            cin >> target_id >> new_id >> value;
+            insert_after(target_id, new_id, value);
+        }
+
+        else if (cmd == "move_to_front") {
+            int id;
+            cin >> id;
+            move_to_front(id);
+        }
+
+        else if (cmd == "splice_range") {
+            int l, r;
+            cin >> l >> r;
+            splice_range(l, r);
+        }
+
+        else if (cmd == "get_value") {
+            int id;
+            cin >> id;
+            cout << get_value(id) << "\n";
+        }
+
+        else if (cmd == "remove") {
+            int id;
+            cin >> id;
+            remove(id);
+        }
+    }
+
+    return 0;
 }
 
