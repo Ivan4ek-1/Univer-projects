@@ -100,3 +100,14 @@ int main() {
 	return 0;
 }
 
+void detach(Task* x) {
+    if (x->prev) x->prev->next = x->next;
+    else head = x->next;
+
+    if (x->next) x->next->prev = x->prev;
+    else tail = x->prev;
+
+    x->prev = nullptr;
+    x->next = nullptr;
+}
+
