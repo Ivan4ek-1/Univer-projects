@@ -18,7 +18,7 @@ void add(int id, int value) {
 	Task* x = new Task{ id, value, nullptr, nullptr };
 
 	mp[id] = x;
-	
+
 	if (!head) {
 		head = tail = x;
 		return;
@@ -47,53 +47,56 @@ void insert_after(int target_id, int new_id, int value) {
 	pos->next = x;
 }
 
+void move_to_front(int id) {
+	Task* x = mp[id];
+
+	if (x == head) return;
+
+	detach(x);
+
+	x->prev = nullptr;
+	x->next = head;
+
+	head->prev = x;
+	head = x;
+}
+
+void splice_range(int id_from, int id_to) {
+	Task* L = mp[id_from];
+	Task* R = mp[id_to];
+
+	if (L == head) return;
+
+	Task* before = L->prev;
+	Task* after = R->next;
+
+	if (before) before->next = after;
+	else head = after;
+
+	if (after) after->prev = before;
+	else tail = before;
+
+	R->next = head;
+	L->prev = nullptr;
+
+	if (head) head->prev = R;
+	head = L;
+}
+
+void remove(int id) {
+	Task* x = mp[id];
+
+	detach(x);
+
+	mp.erase(id);
+	delete x;
+}
+
 
 int main() {
 	int n;
 	cin >> n;
 
 	return 0;
-}
-void MOVE_TO_FRONT(int id) {
-    Task* x = mp[id];
-
-    if (x == head) return;
-
-    detach(x);
-
-    x->prev = nullptr;
-    x->next = head;
-
-    head->prev = x;
-    head = x;
-}void SPLICE_RANGE(int id_from, int id_to) {
-    Task* L = mp[id_from];
-    Task* R = mp[id_to];
-
-    if (L == head) return;
-
-    Task* before = L->prev;
-    Task* after = R->next;
-
-    // разрезаем диапазон
-    if (before) before->next = after;
-    else head = after;
-
-    if (after) after->prev = before;
-    else tail = before;
-
-    // вставляем в начало
-    R->next = head;
-    L->prev = nullptr;
-
-    if (head) head->prev = R;
-    head = L;
-}void REMOVE(int id) {
-    Task* x = mp[id];
-
-    detach(x);
-
-    mp.erase(id);
-    delete x;
 }
 
