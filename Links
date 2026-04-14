@@ -1,1 +1,58 @@
+#include <iostream>
+#include <string>
+#include <map>
+using namespace std;
+
+struct Task {
+	int id;
+	int value;
+	Task* prev;
+	Task* next;
+};
+
+map<int, Task*> mp;
+Task* head = nullptr;
+Task* tail = nullptr;
+
+void add(int id, int value) {
+	Task* x = new Task{ id, value, nullptr, nullptr };
+
+	mp[id] = x;
+	
+	if (!head) {
+		head = tail = x;
+		return;
+	}
+
+	tail->next = x;
+	x->prev = tail;
+	tail = x;
+
+}
+
+void insert_after(int target_id, int new_id, int value) {
+	Task* pos = mp[target_id];
+	Task* x = new Task{ new_id, value, nullptr, nullptr };
+
+	mp[new_id] = x;
+
+	x->next = pos->next;
+	x->prev = pos;
+
+	if (pos->next)
+		pos->next->prev = x;
+	else
+		tail = x;
+
+	pos->next = x;
+}
+
+
+int main() {
+	int n;
+	cin >> n;
+
+	return 0;
+}
+
 
