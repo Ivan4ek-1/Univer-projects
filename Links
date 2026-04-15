@@ -1,5 +1,8 @@
 #include <iostream>
 #include <map>
+#include <ctime>
+#include <fstream>
+#include <string>
 using namespace std;
 
 struct Task {
@@ -124,18 +127,23 @@ void see_nei(int id) {
 
 
 int main() {
-	cout << "Insert how many commands\n";
-	int n;
-	cin >> n;
-	cout << "Now insert commands\n";
+	ifstream fin("test.txt");
+	cout << "\n";
 
+	//cout << "Insert how many commands\n";
+	int n;
+	fin >> n;
+	//cout << "Now insert commands\n";
+
+	clock_t start = clock();
 	for (int i = 0; i < n; i++) {
+
 		string cmd;
-		cin >> cmd;
+		fin >> cmd;
 
 		if (cmd == "add") {
 			int id, value;
-			cin >> id >> value;
+			cin >> id >> value;  
 			add(id, value);
 		}
 
@@ -178,7 +186,13 @@ int main() {
 			cin >> id;
 			see_nei(id);
 		}
+		clock_t end = clock();
+
+		
 	}
+	clock_t end = clock();
+	double time = double(end - start) / CLOCKS_PER_SEC;
+	cout << time << "\n";
 
 	return 0;
 }
