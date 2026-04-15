@@ -128,7 +128,6 @@ void see_nei(int id) {
 
 int main() {
 	ifstream fin("test.txt");
-	cout << "\n";
 
 	//cout << "Insert how many commands\n";
 	int n;
@@ -143,37 +142,37 @@ int main() {
 
 		if (cmd == "add") {
 			int id, value;
-			cin >> id >> value;  
+			fin >> id >> value;  
 			add(id, value);
 		}
 
 		else if (cmd == "insert_after") {
 			int target_id, new_id, value;
-			cin >> target_id >> new_id >> value;
+			fin >> target_id >> new_id >> value;
 			insert_after(target_id, new_id, value);
 		}
 
 		else if (cmd == "move_to_front") {
 			int id;
-			cin >> id;
+			fin >> id;
 			move_to_front(id);
 		}
 
 		else if (cmd == "splice_range") {
 			int l, r;
-			cin >> l >> r;
+			fin >> l >> r;
 			splice_range(l, r);
 		}
 
 		else if (cmd == "get_value") {
 			int id;
-			cin >> id;
+			fin >> id;
 			cout << get_value(id) << "\n";
 		}
 
 		else if (cmd == "remove") {
 			int id;
-			cin >> id;
+			fin >> id;
 			remove(id);
 		}
 
@@ -183,7 +182,7 @@ int main() {
 
 		else if (cmd == "see_nei") {
 			int id;
-			cin >> id;
+			fin >> id;
 			see_nei(id);
 		}
 		clock_t end = clock();
