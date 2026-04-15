@@ -117,6 +117,12 @@ void see_map() {
 }
 
 
+void see_nei(int id) {
+	Task* x = mp[id];
+	cout << x->prev->id << "\n" << x->next->id << "\n";
+}
+
+
 int main() {
 	cout << "Insert how many commands\n";
 	int n;
@@ -166,8 +172,13 @@ int main() {
 		else if (cmd == "see_map") {
 			see_map();
 		}
+
+		else if (cmd == "see_nei") {
+			int id;
+			cin >> id;
+			see_nei(id);
+		}
 	}
 
 	return 0;
 }
-
