@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <cstdlib>
 #include <ctime>
 using namespace std;
@@ -24,12 +25,65 @@ struct BST {
         r = ins(r, v);
     }
 
-    void print(N* t, int s = 0) {
-        if (!t) return;
-        s += 5;
-        print(t->r, s);
-        cout << "\n" << string(s - 5, ' ') << t->v;
-        print(t->l, s);
+    int h(N* t) {
+        if (!t) return 0;
+        return 1 + max(h(t->l), h(t->r));
+    }
+
+    void print() {
+        if (!r) return;
+
+        queue<N*> q;
+        q.push(r);
+
+        int height = h(r);
+        int level = 0;
+        int maxNodes = 1 << height;
+
+        while (level < height) {
+            int sz = q.size();
+            int space = maxNodes >> (level + 1);
+
+            for (int i = 0; i < sz; i++) {
+                for (int j = 0; j < space; j++) cout << " ";
+
+                N* cur = q.front(); q.pop();
+
+                if (cur) {
+                    cout << cur->v;
+                    q.push(cur->l);
+                    q.push(cur->r);
+                } else {
+                    cout << " ";
+                    q.push(0);
+                    q.push(0);
+                }
+
+                for (int j = 0; j < space; j++) cout << " ";
+            }
+            cout << "\n";
+
+            for (int i = 0; i < sz; i++) {
+                for (int j = 0; j < space; j++) cout << " ";
+
+                N* cur = q.front();
+                q.pop();
+
+                if (cur) {
+                    cout << (cur->l ? "/" : " ");
+                    cout << " ";
+                    cout << (cur->r ? "\\" : " ");
+                } else {
+                    cout << "   ";
+                }
+
+                for (int j = 0; j < space; j++) cout << " ";
+                q.push(0);
+                q.push(0);
+            }
+            cout << "\n";
+            level++;
+        }
     }
 };
 
@@ -116,7 +170,7 @@ struct BTree {
         cout << string(d * 4, ' ') << "[";
         for (int i = 0; i < x->k.size(); i++) {
             cout << x->k[i];
-            if (i + 1 < x->k.size()) cout << "|";
+            if (i + 1 < x->k.size()) cout << " | ";
         }
         cout << "]\n";
 
@@ -125,51 +179,46 @@ struct BTree {
 };
 
 int main() {
-    while (true) {
-        int mode, N, in;
+    int mode, N, in;
 
-        cout << "1-BST 2-BTree 0-exit: ";
-        cin >> mode;
-        if (mode == 0) break;
+    cout << "1-BST 2-BTree: ";
+    cin >> mode;
 
-        cout << "N: ";
-        cin >> N;
+    cout << "N: ";
+    cin >> N;
 
-        cout << "1-manual 2-random: ";
-        cin >> in;
+    cout << "1-manual 2-random: ";
+    cin >> in;
 
-        vector<int> a(N);
+    vector<int> a(N);
 
-        if (in == 1) {
-            for (int i = 0; i < N; i++) cin >> a[i];
-        } else {
-            srand(time(0));
-            for (int i = 0; i < N; i++) {
-                a[i] = rand() % N + 1;
-                cout << a[i] << " ";
-            }
-            cout << "\n";
+    if (in == 1) {
+        for (int i = 0; i < N; i++) cin >> a[i];
+    } else {
+        srand(time(0));
+        for (int i = 0; i < N; i++) {
+            a[i] = rand() % N + 1;
+            cout << a[i] << " ";
         }
+        cout << "\n";
+    }
 
-        if (mode == 1) {
-            BST t;
-            for (int x : a) t.add(x);
-            cout << "\nBST:\n";
-            t.print(t.r);
-            cout << "\n";
-        } 
-        else if (mode == 2) {
-            int tdeg;
-            cout << "t: ";
-            cin >> tdeg;
+    if (mode == 1) {
+        BST t;
+        for (int x : a) t.add(x);
+        cout << "\nBST:\n";
+        t.print();
+    } 
+    else {
+        int tdeg;
+        cout << "t: ";
+        cin >> tdeg;
 
-            BTree t(tdeg);
-            for (int x : a) t.add(x);
+        BTree t(tdeg);
+        for (int x : a) t.add(x);
 
-            cout << "\nBTree:\n";
-            t.print(t.r);
-            cout << "\n";
-        }
+        cout << "\nBTree:\n";
+        t.print(t.r);
     }
 
     return 0;
