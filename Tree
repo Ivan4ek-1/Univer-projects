@@ -5,99 +5,156 @@
 #include <ctime>
 using namespace std;
 
+// ---------------- BST ----------------
 struct BST {
     struct N {
         int v;
-        N *l,*r;
-        N(int v):v(v),l(0),r(0){}
-    }*r=0;
+        N *l, *r;
+        N(int v): v(v), l(0), r(0) {}
+    };
 
-    N* ins(N* t,int v){
-        if(!t) return new N(v);
-        if(v<t->v) t->l=ins(t->l,v);
-        else t->r=ins(t->r,v);
+    N* root = 0;
+
+    N* ins(N* t, int v) {
+        if (!t) return new N(v);
+        if (v < t->v) t->l = ins(t->l, v);
+        else t->r = ins(t->r, v);
         return t;
     }
 
-    void add(int v){ r=ins(r,v); }
-
-    int h(N* t){
-        if(!t) return 0;
-        return 1+max(h(t->l),h(t->r));
+    void add(int v) {
+        root = ins(root, v);
     }
 
-    void print(){
-        int height=h(r);
-        if(!r) return;
+    int h(N* t) {
+        if (!t) return 0;
+        return 1 + max(h(t->l), h(t->r));
+    }
 
+    void print() {
+        if (!root) return;
+
+        int height = h(root);
         queue<N*> q;
-        q.push(r);
+        q.push(root);
 
-        int level=0;
-        int maxNodes=1<<height;
+        int level = 0;
+        int maxNodes = 1 << height;
 
-        while(level<height){
-            int sz=q.size();
-            int space=maxNodes>>(level+1);
+        while (level < height) {
+            int sz = q.size();
+            int space = maxNodes >> (level + 1);
 
-            for(int i=0;i<sz;i++){
-                for(int j=0;j<space;j++) cout<<" ";
-                N* cur=q.front(); q.pop();
+            for (int i = 0; i < sz; i++) {
+                for (int j = 0; j < space; j++) cout << " ";
 
-                if(cur){
-                    cout<<cur->v;
+                N* cur = q.front(); q.pop();
+
+                if (cur) {
+                    cout << cur->v;
                     q.push(cur->l);
                     q.push(cur->r);
                 } else {
-                    cout<<" ";
+                    cout << " ";
                     q.push(0);
                     q.push(0);
                 }
 
-                for(int j=0;j<space;j++) cout<<" ";
+                for (int j = 0; j < space; j++) cout << " ";
             }
-            cout<<"\n";
+            cout << "\n";
 
-            for(int i=0;i<sz;i++){
-                for(int j=0;j<space;j++) cout<<" ";
-                N* cur=q.front();
+            for (int i = 0; i < sz; i++) {
+                for (int j = 0; j < space; j++) cout << " ";
 
-                if(cur){
-                    cout<<(cur->l?"/":" ");
-                    cout<<" ";
-                    cout<<(cur->r?"\\":" ");
+                N* cur = q.front();
+                q.pop();
+
+                if (cur) {
+                    cout << (cur->l ? "/" : " ");
+                    cout << " ";
+                    cout << (cur->r ? "\\" : " ");
                 } else {
-                    cout<<"   ";
+                    cout << "   ";
                 }
 
-                for(int j=0;j<space;j++) cout<<" ";
-                q.push(q.front()); q.pop();
+                for (int j = 0; j < space; j++) cout << " ";
+                q.push(0);
+                q.push(0);
             }
-            cout<<"\n";
-
+            cout << "\n";
             level++;
         }
     }
 };
 
-int main(){
-    int N,in;
-    cin>>N>>in;
+// ---------------- B-Tree ----------------
+struct BTree {
+    struct Node {
+        vector<int> k;
+        vector<Node*> c;
+        bool leaf;
 
-    vector<int>a(N);
-    if(in==1){
-        for(int i=0;i<N;i++) cin>>a[i];
+        Node(bool leaf): leaf(leaf) {}
+    };
+
+    Node* root;
+
+    BTree() {
+        root = new Node(true);
+    }
+
+    void print(Node* x, int d = 0) {
+        if (!x) return;
+
+        cout << string(d * 4, ' ') << "[";
+        for (int i = 0; i < x->k.size(); i++) {
+            cout << x->k[i];
+            if (i + 1 < x->k.size()) cout << " | ";
+        }
+        cout << "]\n";
+
+        if (!x->leaf) {
+            cout << string(d * 4, ' ');
+            for (int i = 0; i <= x->k.size(); i++) {
+                cout << "  |  ";
+            }
+            cout << "\n";
+
+            for (auto child : x->c) {
+                print(child, d + 1);
+            }
+        }
+    }
+};
+
+// ---------------- MAIN ----------------
+int main() {
+    int N, mode;
+    cin >> N >> mode;
+
+    vector<int> a(N);
+
+    if (mode == 1) {
+        for (int i = 0; i < N; i++) cin >> a[i];
     } else {
         srand(time(0));
-        for(int i=0;i<N;i++){
-            a[i]=rand()%N+1;
-            cout<<a[i]<<" ";
+        for (int i = 0; i < N; i++) {
+            a[i] = rand() % N + 1;
+            cout << a[i] << " ";
         }
-        cout<<"\n";
+        cout << "\n";
     }
 
     BST t;
-    for(int x:a) t.add(x);
+    for (int x : a) t.add(x);
 
+    cout << "BST:\n";
     t.print();
+
+    cout << "\nB-Tree (структура только для вывода, без вставки):\n";
+    BTree bt;
+    bt.print(bt.root);
+
+    return 0;
 }
