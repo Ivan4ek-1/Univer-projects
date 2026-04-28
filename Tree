@@ -130,31 +130,52 @@ struct BTree {
 
 // ---------------- MAIN ----------------
 int main() {
-    int N, mode;
-    cin >> N >> mode;
+    while (true) {
+        int mode, N, in;
 
-    vector<int> a(N);
+        cout << "1-BST 2-BTree 0-exit: ";
+        cin >> mode;
 
-    if (mode == 1) {
-        for (int i = 0; i < N; i++) cin >> a[i];
-    } else {
-        srand(time(0));
-        for (int i = 0; i < N; i++) {
-            a[i] = rand() % N + 1;
-            cout << a[i] << " ";
+        if (mode == 0) break;
+
+        cout << "N: ";
+        cin >> N;
+
+        cout << "1-manual 2-random: ";
+        cin >> in;
+
+        vector<int> a(N);
+
+        if (in == 1) {
+            for (int i = 0; i < N; i++) cin >> a[i];
+        } else {
+            srand(time(0));
+            for (int i = 0; i < N; i++) {
+                a[i] = rand() % N + 1;
+                cout << a[i] << " ";
+            }
+            cout << "\n";
         }
-        cout << "\n";
+
+        if (mode == 1) {
+            BST t;
+            for (int x : a) t.add(x);
+            cout << "\nBST:\n";
+            t.print(t.r);
+            cout << "\n";
+        } 
+        else if (mode == 2) {
+            int tdeg;
+            cout << "t: ";
+            cin >> tdeg;
+
+            BTree t(tdeg);
+            for (int x : a) t.add(x);
+            cout << "\nBTree:\n";
+            t.print(t.r);
+            cout << "\n";
+        }
     }
-
-    BST t;
-    for (int x : a) t.add(x);
-
-    cout << "BST:\n";
-    t.print();
-
-    cout << "\nB-Tree (структура только для вывода, без вставки):\n";
-    BTree bt;
-    bt.print(bt.root);
 
     return 0;
 }
