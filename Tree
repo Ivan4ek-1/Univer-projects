@@ -24,14 +24,21 @@ struct BST {
         r = ins(r, v);
     }
 
-    void print(N* t, string pref = "", bool left = true) {
+    void print(N* t, string pref = "") {
         if (!t) return;
 
-        if (t->r) print(t->r, pref + (left ? "│   " : "    "), false);
+        if (t->r) print(t->r, pref + "    ");
 
-        cout << pref << (left ? "└── " : "┌── ") << t->v << "\n";
+        cout << pref << t->v << "\n";
 
-        if (t->l) print(t->l, pref + (left ? "    " : "│   "), true);
+        if (t->l) {
+            cout << pref << "/\n";
+            print(t->l, pref + "    ");
+        }
+
+        if (t->r) {
+            cout << pref << "\\\n";
+        }
     }
 };
 
@@ -122,14 +129,6 @@ struct BTree {
         }
         cout << "]\n";
 
-        if (!x->leaf && !x->c.empty()) {
-            cout << string(d * 4, ' ');
-            for (int i = 0; i < x->c.size(); i++) {
-                cout << " / \\ ";
-            }
-            cout << "\n";
-        }
-
         for (auto c : x->c)
             print(c, d + 1);
     }
@@ -163,6 +162,7 @@ int main() {
     if (mode == 1) {
         BST t;
         for (int x : a) t.add(x);
+
         cout << "\nBST:\n";
         t.print(t.r);
     } 
