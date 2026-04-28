@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <cstdlib>
 #include <ctime>
 using namespace std;
@@ -25,65 +24,14 @@ struct BST {
         r = ins(r, v);
     }
 
-    int h(N* t) {
-        if (!t) return 0;
-        return 1 + max(h(t->l), h(t->r));
-    }
+    void print(N* t, string pref = "", bool left = true) {
+        if (!t) return;
 
-    void print() {
-        if (!r) return;
+        if (t->r) print(t->r, pref + (left ? "│   " : "    "), false);
 
-        queue<N*> q;
-        q.push(r);
+        cout << pref << (left ? "└── " : "┌── ") << t->v << "\n";
 
-        int height = h(r);
-        int level = 0;
-        int maxNodes = 1 << height;
-
-        while (level < height) {
-            int sz = q.size();
-            int space = maxNodes >> (level + 1);
-
-            for (int i = 0; i < sz; i++) {
-                for (int j = 0; j < space; j++) cout << " ";
-
-                N* cur = q.front(); q.pop();
-
-                if (cur) {
-                    cout << cur->v;
-                    q.push(cur->l);
-                    q.push(cur->r);
-                } else {
-                    cout << " ";
-                    q.push(0);
-                    q.push(0);
-                }
-
-                for (int j = 0; j < space; j++) cout << " ";
-            }
-            cout << "\n";
-
-            for (int i = 0; i < sz; i++) {
-                for (int j = 0; j < space; j++) cout << " ";
-
-                N* cur = q.front();
-                q.pop();
-
-                if (cur) {
-                    cout << (cur->l ? "/" : " ");
-                    cout << " ";
-                    cout << (cur->r ? "\\" : " ");
-                } else {
-                    cout << "   ";
-                }
-
-                for (int j = 0; j < space; j++) cout << " ";
-                q.push(0);
-                q.push(0);
-            }
-            cout << "\n";
-            level++;
-        }
+        if (t->l) print(t->l, pref + (left ? "    " : "│   "), true);
     }
 };
 
@@ -174,7 +122,16 @@ struct BTree {
         }
         cout << "]\n";
 
-        for (auto c : x->c) print(c, d + 1);
+        if (!x->leaf && !x->c.empty()) {
+            cout << string(d * 4, ' ');
+            for (int i = 0; i < x->c.size(); i++) {
+                cout << " / \\ ";
+            }
+            cout << "\n";
+        }
+
+        for (auto c : x->c)
+            print(c, d + 1);
     }
 };
 
@@ -207,7 +164,7 @@ int main() {
         BST t;
         for (int x : a) t.add(x);
         cout << "\nBST:\n";
-        t.print();
+        t.print(t.r);
     } 
     else {
         int tdeg;
