@@ -1,0 +1,142 @@
+
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+
+struct BST {
+    struct N {
+        int v;
+        N *l,*r;
+        N(int v):v(v),l(0),r(0){}
+    }*r=0;
+
+    N* ins(N* t,int v){
+        if(!t) return new N(v);
+        if(v<t->v) t->l=ins(t->l,v);
+        else t->r=ins(t->r,v);
+        return t;
+    }
+
+    void add(int v){ r=ins(r,v); }
+
+    void print(N* t,int s=0){
+        if(!t) return;
+        s+=5;
+        print(t->r,s);
+        cout<<"\n"<<string(s-5,' ')<<t->v;
+        print(t->l,s);
+    }
+};
+
+struct BTree {
+    struct N {
+        vector<int> k;
+        vector<N*> c;
+        bool leaf;
+        N(bool l):leaf(l){}
+    }*r=0;
+    int t;
+
+    BTree(int t):t(t){}
+
+    void split(N* x,int i){
+        N* y=x->c[i];
+        N* z=new N(y->leaf);
+        int m=y->k[t-1];
+
+        for(int j=t;j<y->k.size();j++) z->k.push_back(y->k[j]);
+        if(!y->leaf)
+            for(int j=t;j<y->c.size();j++) z->c.push_back(y->c[j]);
+
+        y->k.resize(t-1);
+        if(!y->leaf) y->c.resize(t);
+
+        x->c.insert(x->c.begin()+i+1,z);
+        x->k.insert(x->k.begin()+i,m);
+    }
+
+    void insNF(N* x,int v){
+        int i=x->k.size()-1;
+        if(x->leaf){
+            x->k.push_back(0);
+            while(i>=0&&v<x->k[i]) x->k[i+1]=x->k[i],i--;
+            x->k[i+1]=v;
+        } else {
+            while(i>=0&&v<x->k[i]) i--;
+            i++;
+            if(x->c[i]->k.size()==2*t-1){
+                split(x,i);
+                if(v>x->k[i]) i++;
+            }
+            insNF(x->c[i],v);
+        }
+    }
+
+    void add(int v){
+        if(!r){
+            r=new N(1);
+            r->k.push_back(v);
+            return;
+        }
+        if(r->k.size()==2*t-1){
+            N* s=new N(0);
+            s->c.push_back(r);
+            split(s,0);
+            int i=(v>s->k[0]);
+            insNF(s->c[i],v);
+            r=s;
+        } else insNF(r,v);
+    }
+
+    void print(N* x,int d=0){
+        if(!x) return;
+        cout<<string(d*4,' ')<<"[";
+        for(int i=0;i<x->k.size();i++){
+            cout<<x->k[i];
+            if(i+1<x->k.size()) cout<<"|";
+        }
+        cout<<"]\n";
+        for(auto i:x->c) print(i,d+1);
+    }
+};
+
+int main(){
+    int mode,N,in;
+    cout<<"1-BST 2-BTree: ";
+    cin>>mode;
+
+    cout<<"N: ";
+    cin>>N;
+
+    cout<<"1-manual 2-random: ";
+    cin>>in;
+
+    vector<int>a(N);
+    if(in==1){
+        for(int i=0;i<N;i++) cin>>a[i];
+    } else {
+        srand(time(0));
+        for(int i=0;i<N;i++){
+            a[i]=rand()%N+1;
+            cout<<a[i]<<" ";
+        }
+        cout<<"\n";
+    }
+
+    if(mode==1){
+        BST t;
+        for(int x:a) t.add(x);
+        cout<<"\nBST:\n";
+        t.print(t.r);
+    } else {
+        int tdeg;
+        cout<<"t: ";
+        cin>>tdeg;
+        BTree t(tdeg);
+        for(int x:a) t.add(x);
+        cout<<"\nBTree:\n";
+        t.print(t.r);
+    }
+}
