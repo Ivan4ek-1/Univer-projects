@@ -4,13 +4,14 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <string>
 using namespace std;
 
 // ---------------- BST ----------------
 struct BST {
     struct N {
         int v;
-        N *l, *r;
+        N* l, * r;
         N(int v) : v(v), l(0), r(0) {}
     };
 
@@ -32,35 +33,55 @@ struct BST {
         return 1 + max(h(t->l), h(t->r));
     }
 
-    void fill(vector<vector<string>>& grid, N* t, int row, int col, int step) {
-        if (!t || row >= grid.size() || col < 0 || col >= grid[0].size()) return;
-
-        grid[row][col] = to_string(t->v);
-
-        if (t->l)
-            fill(grid, t->l, row + 2, col - step, step / 2);
-
-        if (t->r)
-            fill(grid, t->r, row + 2, col + step, step / 2);
-    }
+    struct Item {
+        N* n;
+        int x;
+        int y;
+    };
 
     void print() {
         if (!r) return;
 
-        int height = h(r);
-        int width = (1 << (height + 1));
+        int H = h(r);
+        int width = 80; // можно считать консоль фиксированной
 
-        vector<vector<string>> grid(height * 2, vector<string>(width, " "));
+        vector<vector<char>> grid(H * 2 + 1, vector<char>(width, ' '));
 
-        fill(grid, r, 0, width / 2, width / 4);
+        queue<Item> q;
+        q.push({ r, width / 2, 0 });
+
+        while (!q.empty()) {
+            Item cur = q.front(); q.pop();
+
+            int x = cur.x;
+            int y = cur.y;
+
+            if (x < 0 || x >= width || y >= H * 2) continue;
+
+            string s = to_string(cur.n->v);
+            for (int i = 0; i < s.size() && x + i < width; i++) {
+                grid[y][x + i] = s[i];
+            }
+
+            int offset = max(1, width >> (cur.y / 2 + 2));
+
+            if (cur.n->l) {
+                grid[y + 1][x - offset] = '/';
+                q.push({ cur.n->l, x - offset, y + 2 });
+            }
+
+            if (cur.n->r) {
+                grid[y + 1][x + offset] = '\\';
+                q.push({ cur.n->r, x + offset, y + 2 });
+            }
+        }
 
         for (auto& row : grid) {
-            for (auto& cell : row) {
-                cout << cell;
-            }
+            for (char c : row) cout << c;
             cout << "\n";
         }
     }
+
 };
 
 // ---------------- B-Tree ----------------
@@ -202,110 +223,4 @@ int main() {
     }
 
     return 0;
-}
-
-
-#include <iostream>
-#include <vector>
-#include <queue>
-#include <cmath>
-using namespace std;
-
-struct BST {
-    struct N {
-        int v;
-        N *l, *r;
-        N(int v): v(v), l(0), r(0) {}
-    };
-
-    N* r = 0;
-
-    N* ins(N* t, int v) {
-        if (!t) return new N(v);
-        if (v < t->v) t->l = ins(t->l, v);
-        else t->r = ins(t->r, v);
-        return t;
-    }
-
-    void add(int v) {
-        r = ins(r, v);
-    }
-
-    int h(N* t) {
-        if (!t) return 0;
-        return 1 + max(h(t->l), h(t->r));
-    }
-
-    struct Item {
-        N* n;
-        int x;
-        int y;
-    };
-
-    void print() {
-        if (!r) return;
-
-        int H = h(r);
-        int width = 80; // можно считать консоль фиксированной
-
-        vector<vector<char>> grid(H * 2 + 1, vector<char>(width, ' '));
-
-        queue<Item> q;
-        q.push({r, width / 2, 0});
-
-        while (!q.empty()) {
-            Item cur = q.front(); q.pop();
-
-            int x = cur.x;
-            int y = cur.y;
-
-            if (x < 0 || x >= width || y >= H * 2) continue;
-
-            string s = to_string(cur.n->v);
-            for (int i = 0; i < s.size() && x + i < width; i++) {
-                grid[y][x + i] = s[i];
-            }
-
-            int offset = max(1, width >> (cur.y / 2 + 2));
-
-            if (cur.n->l) {
-                grid[y + 1][x - offset] = '/';
-                q.push({cur.n->l, x - offset, y + 2});
-            }
-
-            if (cur.n->r) {
-                grid[y + 1][x + offset] = '\\';
-                q.push({cur.n->r, x + offset, y + 2});
-            }
-        }
-
-        for (auto &row : grid) {
-            for (char c : row) cout << c;
-            cout << "\n";
-        }
-    }
-};
-
-if (cur.n->l) {
-    int nx = x - offset;
-
-    if (y + 1 < grid.size() && nx >= 0 && nx < width) {
-        grid[y + 1][nx] = '/';
-    }
-
-    if (nx >= 0) {
-        q.push({cur.n->l, nx, y + 2});
-    }
-}
-
-if (cur.n->r) {
-    int nx = x + offset;
-
-    if (y + 1 < grid.size() && nx >= 0 && nx < width) {
-        grid[y + 1][nx] = '\\';
-    }
-
-    if (nx < width) {
-        q.push({cur.n->r, nx, y + 2});
-    }
 }
