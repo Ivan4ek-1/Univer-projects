@@ -1,19 +1,17 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <cstdlib>
 #include <ctime>
 using namespace std;
 
-// ---------------- BST ----------------
 struct BST {
     struct N {
         int v;
         N *l, *r;
-        N(int v): v(v), l(0), r(0) {}
+        N(int v) : v(v), l(0), r(0) {}
     };
 
-    N* root = 0;
+    N* r = 0;
 
     N* ins(N* t, int v) {
         if (!t) return new N(v);
@@ -23,119 +21,115 @@ struct BST {
     }
 
     void add(int v) {
-        root = ins(root, v);
+        r = ins(r, v);
     }
 
-    int h(N* t) {
-        if (!t) return 0;
-        return 1 + max(h(t->l), h(t->r));
-    }
-
-    void print() {
-        if (!root) return;
-
-        int height = h(root);
-        queue<N*> q;
-        q.push(root);
-
-        int level = 0;
-        int maxNodes = 1 << height;
-
-        while (level < height) {
-            int sz = q.size();
-            int space = maxNodes >> (level + 1);
-
-            for (int i = 0; i < sz; i++) {
-                for (int j = 0; j < space; j++) cout << " ";
-
-                N* cur = q.front(); q.pop();
-
-                if (cur) {
-                    cout << cur->v;
-                    q.push(cur->l);
-                    q.push(cur->r);
-                } else {
-                    cout << " ";
-                    q.push(0);
-                    q.push(0);
-                }
-
-                for (int j = 0; j < space; j++) cout << " ";
-            }
-            cout << "\n";
-
-            for (int i = 0; i < sz; i++) {
-                for (int j = 0; j < space; j++) cout << " ";
-
-                N* cur = q.front();
-                q.pop();
-
-                if (cur) {
-                    cout << (cur->l ? "/" : " ");
-                    cout << " ";
-                    cout << (cur->r ? "\\" : " ");
-                } else {
-                    cout << "   ";
-                }
-
-                for (int j = 0; j < space; j++) cout << " ";
-                q.push(0);
-                q.push(0);
-            }
-            cout << "\n";
-            level++;
-        }
+    void print(N* t, int s = 0) {
+        if (!t) return;
+        s += 5;
+        print(t->r, s);
+        cout << "\n" << string(s - 5, ' ') << t->v;
+        print(t->l, s);
     }
 };
 
-// ---------------- B-Tree ----------------
 struct BTree {
-    struct Node {
+    struct N {
         vector<int> k;
-        vector<Node*> c;
+        vector<N*> c;
         bool leaf;
-
-        Node(bool leaf): leaf(leaf) {}
+        N(bool l) : leaf(l) {}
     };
 
-    Node* root;
+    N* r = 0;
+    int t;
 
-    BTree() {
-        root = new Node(true);
+    BTree(int t) : t(t) {}
+
+    void split(N* x, int i) {
+        N* y = x->c[i];
+        N* z = new N(y->leaf);
+
+        int mid = y->k[t - 1];
+
+        for (int j = t; j < y->k.size(); j++)
+            z->k.push_back(y->k[j]);
+
+        if (!y->leaf)
+            for (int j = t; j < y->c.size(); j++)
+                z->c.push_back(y->c[j]);
+
+        y->k.resize(t - 1);
+        if (!y->leaf) y->c.resize(t);
+
+        x->c.insert(x->c.begin() + i + 1, z);
+        x->k.insert(x->k.begin() + i, mid);
     }
 
-    void print(Node* x, int d = 0) {
+    void insNF(N* x, int v) {
+        int i = x->k.size() - 1;
+
+        if (x->leaf) {
+            x->k.push_back(0);
+            while (i >= 0 && v < x->k[i]) {
+                x->k[i + 1] = x->k[i];
+                i--;
+            }
+            x->k[i + 1] = v;
+        } else {
+            while (i >= 0 && v < x->k[i]) i--;
+            i++;
+
+            if (x->c[i]->k.size() == 2 * t - 1) {
+                split(x, i);
+                if (v > x->k[i]) i++;
+            }
+
+            insNF(x->c[i], v);
+        }
+    }
+
+    void add(int v) {
+        if (!r) {
+            r = new N(true);
+            r->k.push_back(v);
+            return;
+        }
+
+        if (r->k.size() == 2 * t - 1) {
+            N* s = new N(false);
+            s->c.push_back(r);
+            split(s, 0);
+
+            int i = (v > s->k[0]);
+            insNF(s->c[i], v);
+
+            r = s;
+        } else {
+            insNF(r, v);
+        }
+    }
+
+    void print(N* x, int d = 0) {
         if (!x) return;
 
         cout << string(d * 4, ' ') << "[";
         for (int i = 0; i < x->k.size(); i++) {
             cout << x->k[i];
-            if (i + 1 < x->k.size()) cout << " | ";
+            if (i + 1 < x->k.size()) cout << "|";
         }
         cout << "]\n";
 
-        if (!x->leaf) {
-            cout << string(d * 4, ' ');
-            for (int i = 0; i <= x->k.size(); i++) {
-                cout << "  |  ";
-            }
-            cout << "\n";
-
-            for (auto child : x->c) {
-                print(child, d + 1);
-            }
-        }
+        for (auto c : x->c) print(c, d + 1);
     }
 };
 
-// ---------------- MAIN ----------------
 int main() {
     while (true) {
         int mode, N, in;
 
         cout << "1-BST 2-BTree 0-exit: ";
         cin >> mode;
-
         if (mode == 0) break;
 
         cout << "N: ";
@@ -171,6 +165,7 @@ int main() {
 
             BTree t(tdeg);
             for (int x : a) t.add(x);
+
             cout << "\nBTree:\n";
             t.print(t.r);
             cout << "\n";
