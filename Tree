@@ -1,9 +1,12 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 using namespace std;
 
+// ---------------- BST ----------------
 struct BST {
     struct N {
         int v;
@@ -24,24 +27,74 @@ struct BST {
         r = ins(r, v);
     }
 
-    void print(N* t, string pref = "") {
-        if (!t) return;
+    int height(N* t) {
+        if (!t) return 0;
+        return 1 + max(height(t->l), height(t->r));
+    }
 
-        if (t->r) print(t->r, pref + "    ");
+    void print() {
+        if (!r) return;
 
-        cout << pref << t->v << "\n";
+        int h = height(r);
+        int maxWidth = (1 << h);
 
-        if (t->l) {
-            cout << pref << "/\n";
-            print(t->l, pref + "    ");
-        }
+        queue<N*> q;
+        q.push(r);
 
-        if (t->r) {
-            cout << pref << "\\\n";
+        for (int level = 0; level < h; level++) {
+            int size = q.size();
+            int space = maxWidth / (1 << (level + 1));
+
+            // nodes
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < space; j++) cout << " ";
+
+                N* cur = q.front(); q.pop();
+
+                if (cur) {
+                    cout << cur->v;
+                    q.push(cur->l);
+                    q.push(cur->r);
+                } else {
+                    cout << " ";
+                    q.push(0);
+                    q.push(0);
+                }
+
+                for (int j = 0; j < space; j++) cout << " ";
+            }
+            cout << "\n";
+
+            // branches
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < space; j++) cout << " ";
+
+                N* cur = q.front(); // peek "next level structure"
+                (void)cur;
+
+                N* left = q.front(); q.pop();
+                N* right = q.front(); q.pop();
+
+                if (left || right) {
+                    cout << (left ? "/" : " ");
+                    cout << " ";
+                    cout << (right ? "\\" : " ");
+                } else {
+                    cout << "   ";
+                }
+
+                for (int j = 0; j < space; j++) cout << " ";
+
+                q.push(left);
+                q.push(right);
+            }
+
+            cout << "\n";
         }
     }
 };
 
+// ---------------- B-Tree ----------------
 struct BTree {
     struct N {
         vector<int> k;
@@ -134,6 +187,7 @@ struct BTree {
     }
 };
 
+// ---------------- MAIN ----------------
 int main() {
     int mode, N, in;
 
@@ -164,7 +218,7 @@ int main() {
         for (int x : a) t.add(x);
 
         cout << "\nBST:\n";
-        t.print(t.r);
+        t.print();
     } 
     else {
         int tdeg;
