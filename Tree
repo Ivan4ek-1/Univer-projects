@@ -27,66 +27,61 @@ struct BST {
         r = ins(r, v);
     }
 
-    int height(N* t) {
+    int h(N* t) {
         if (!t) return 0;
-        return 1 + max(height(t->l), height(t->r));
+        return 1 + max(h(t->l), h(t->r));
     }
 
     void print() {
         if (!r) return;
 
-        int h = height(r);
-        int maxWidth = (1 << h);
-
         queue<N*> q;
         q.push(r);
 
-        for (int level = 0; level < h; level++) {
-            int size = q.size();
-            int space = maxWidth / (1 << (level + 1));
+        while (!q.empty()) {
+            int sz = q.size();
 
-            // nodes
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < space; j++) cout << " ";
+            vector<N*> level;
 
+            // 1) узлы
+            for (int i = 0; i < sz; i++) {
                 N* cur = q.front(); q.pop();
+                level.push_back(cur);
 
                 if (cur) {
-                    cout << cur->v;
+                    cout << cur->v << " ";
                     q.push(cur->l);
                     q.push(cur->r);
                 } else {
-                    cout << " ";
+                    cout << "  ";
                     q.push(0);
                     q.push(0);
                 }
-
-                for (int j = 0; j < space; j++) cout << " ";
             }
+
             cout << "\n";
 
-            // branches
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < space; j++) cout << " ";
+            // 2) ветви
+            bool hasNext = false;
+            vector<N*> temp;
 
-                N* cur = q.front(); // peek "next level structure"
-                (void)cur;
+            for (auto n : level) {
+                if (n && (n->l || n->r)) hasNext = true;
+                temp.push_back(n);
+            }
 
-                N* left = q.front(); q.pop();
-                N* right = q.front(); q.pop();
+            if (!hasNext) break;
 
-                if (left || right) {
-                    cout << (left ? "/" : " ");
-                    cout << " ";
-                    cout << (right ? "\\" : " ");
-                } else {
-                    cout << "   ";
+            for (auto n : temp) {
+                if (!n) {
+                    cout << "  ";
+                    continue;
                 }
 
-                for (int j = 0; j < space; j++) cout << " ";
-
-                q.push(left);
-                q.push(right);
+                cout << (n->l ? "/" : " ");
+                cout << " ";
+                cout << (n->r ? "\\" : " ");
+                cout << " ";
             }
 
             cout << "\n";
