@@ -7,7 +7,7 @@
 #include <string>
 using namespace std;
 
-// ---------------- BST ----------------
+
 struct BST {
     struct N {
         int v;
@@ -84,7 +84,7 @@ struct BST {
 
 };
 
-// ---------------- B-Tree ----------------
+
 struct BTree {
     struct N {
         vector<int> k;
@@ -177,7 +177,7 @@ struct BTree {
     }
 };
 
-// ---------------- MAIN ----------------
+
 int main() {
     int mode, N, in;
 
