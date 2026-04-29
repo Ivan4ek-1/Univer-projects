@@ -5,8 +5,8 @@
 #include <ctime>
 #include <cmath>
 #include <string>
+#include <algorithm>  
 using namespace std;
-
 
 struct BST {
     struct N {
@@ -43,7 +43,7 @@ struct BST {
         if (!r) return;
 
         int H = h(r);
-        int width = 80; // можно считать консоль фиксированной
+        int width = 80;
 
         vector<vector<char>> grid(H * 2 + 1, vector<char>(width, ' '));
 
@@ -58,32 +58,39 @@ struct BST {
 
             if (x < 0 || x >= width || y >= H * 2) continue;
 
-            string s = to_string(cur.n->v);
-            for (int i = 0; i < s.size() && x + i < width; i++) {
-                grid[y][x + i] = s[i];
+            string s = "[" + to_string(cur.n->v) + "]";
+            int node_width = s.length();
+            int start_x = max(0, min(width - node_width, x - node_width / 2));
+
+            for (int i = 0; i < node_width && start_x + i < width; i++) {
+                grid[y][start_x + i] = s[i];
             }
 
-            int offset = max(1, width >> (cur.y / 2 + 2));
+            int offset = max(2, (width / 4) >> (cur.y / 2));
 
             if (cur.n->l) {
-                grid[y + 1][x - offset] = '/';
-                q.push({ cur.n->l, x - offset, y + 2 });
+                int left_x = max(0, start_x - offset);
+                grid[y + 1][left_x] = '/';
+                q.push({ cur.n->l, left_x, y + 2 });
             }
 
             if (cur.n->r) {
-                grid[y + 1][x + offset] = '\\';
-                q.push({ cur.n->r, x + offset, y + 2 });
+                int right_x = min(width - 1, start_x + node_width + offset);
+                grid[y + 1][right_x - 1] = '\\';
+                q.push({ cur.n->r, right_x, y + 2 });
             }
         }
 
         for (auto& row : grid) {
-            for (char c : row) cout << c;
-            cout << "\n";
+            bool empty = true;
+            for (char c : row) if (c != ' ') { empty = false; break; }
+            if (!empty) {
+                for (char c : row) cout << c;
+                cout << "\n";
+            }
         }
     }
-
 };
-
 
 struct BTree {
     struct N {
@@ -128,7 +135,8 @@ struct BTree {
                 i--;
             }
             x->k[i + 1] = v;
-        } else {
+        }
+        else {
             while (i >= 0 && v < x->k[i]) i--;
             i++;
 
@@ -157,26 +165,97 @@ struct BTree {
             insNF(s->c[i], v);
 
             r = s;
-        } else {
+        }
+        else {
             insNF(r, v);
         }
     }
 
-    void print(N* x, int d = 0) {
-        if (!x) return;
-
-        cout << string(d * 4, ' ') << "[";
-        for (int i = 0; i < x->k.size(); i++) {
-            cout << x->k[i];
-            if (i + 1 < x->k.size()) cout << " | ";
+    int getHeight(N* node) {
+        if (!node || node->leaf) return 0;
+        int max_h = 0;
+        for (auto child : node->c) {
+            max_h = std::max(max_h, getHeight(child));  
         }
-        cout << "]\n";
+        return 1 + max_h;
+    }
 
-        for (auto c : x->c)
-            print(c, d + 1);
+    struct PrintItem {
+        N* node;
+        int x;
+        int y;
+    };
+
+    void print() {
+        if (!r) return;
+
+        int H = getHeight(r);
+        int width = 140;
+
+        vector<vector<char>> grid(H * 4 + 2, vector<char>(width, ' '));
+
+        queue<PrintItem> q;
+        q.push({ r, width / 2, 0 });
+
+        while (!q.empty()) {
+            PrintItem cur = q.front(); q.pop();
+
+            int x = cur.x;
+            int y = cur.y * 4;
+
+            if (x < 0 || x >= width || y >= H * 4) continue;
+
+            string keys;
+            for (size_t i = 0; i < cur.node->k.size(); ++i) {
+                keys += to_string(cur.node->k[i]);
+                if (i + 1 < cur.node->k.size()) keys += " ";
+            }
+            string s = "[" + keys + "]";
+
+            int node_width = s.length();
+            int start_x = std::max(1, std::min(width - node_width - 1, x - node_width / 2));  
+
+            for (int i = 0; i < node_width && start_x + i < width; ++i) {
+                grid[y][start_x + i] = s[i];
+            }
+
+            if (!cur.node->leaf && !cur.node->c.empty()) {
+                int num_children = cur.node->c.size();
+                int total_offset = (width - 20) / (num_children + 1);
+                int base_offset = total_offset / 2;
+
+                for (int i = 0; i < num_children; ++i) {
+                    if (cur.node->c[i]) {
+                        int child_x = std::max(1, std::min(width - 10,
+                            start_x + static_cast<int>((i - (num_children - 1) / 2.0f) * base_offset)));
+
+                        int branch_start = std::min(x + node_width / 2, std::max(start_x, child_x));
+                        int branch_end = std::max(x + node_width / 2, std::min(start_x + node_width, child_x));
+
+                        if (child_x < start_x) {
+                            grid[y + 1][branch_start] = '/';
+                        }
+                        else if (child_x > start_x + node_width) {
+                            grid[y + 1][branch_end - 1] = '\\';
+                        }
+
+                        q.push({ cur.node->c[i], child_x, cur.y + 1 });
+                    }
+                }
+            }
+        }
+
+        for (auto& row : grid) {
+            bool empty = true;
+            for (char c : row) if (c != ' ') { empty = false; break; }
+            if (!empty) {
+                for (char c : row) cout << c;
+                cout << "\n";
+            }
+        }
+        cout << "\n";
     }
 };
-
 
 int main() {
     int mode, N, in;
@@ -194,10 +273,11 @@ int main() {
 
     if (in == 1) {
         for (int i = 0; i < N; i++) cin >> a[i];
-    } else {
+    }
+    else {
         srand(time(0));
         for (int i = 0; i < N; i++) {
-            a[i] = rand() % N + 1;
+            a[i] = rand() % (N * 2) + 1;
             cout << a[i] << " ";
         }
         cout << "\n";
@@ -206,20 +286,17 @@ int main() {
     if (mode == 1) {
         BST t;
         for (int x : a) t.add(x);
-
         cout << "\nBST:\n";
         t.print();
-    } 
+    }
     else {
         int tdeg;
         cout << "t: ";
         cin >> tdeg;
-
         BTree t(tdeg);
         for (int x : a) t.add(x);
-
-        cout << "\nBTree:\n";
-        t.print(t.r);
+        cout << "\nBTree (t=" << tdeg << "):\n";
+        t.print();
     }
 
     return 0;
