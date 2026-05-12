@@ -1,0 +1,130 @@
+#include <iostream>
+#include <string>
+#include <map>
+#include <queue>
+#include <vector>
+#include <iomanip>
+#include <algorithm>
+
+using namespace std;
+
+struct Node {
+    char ch;
+    int freq;
+    Node* left;
+    Node* right;
+
+    Node(char c, int f) : ch(c), freq(f), left(nullptr), right(nullptr) {}
+};
+
+struct Compare {
+    bool operator()(Node* a, Node* b) {
+        if (a->freq != b->freq) return a->freq > b->freq;
+        return a->ch > b->ch;
+    }
+};
+
+void buildCodes(Node* root, const string& code, map<char, string>& codes) {
+    if (!root) return;
+
+    if (!root->left && !root->right) {
+        codes[root->ch] = code.empty() ? "0" : code;
+        return;
+    }
+
+    buildCodes(root->left, code + "0", codes);
+    buildCodes(root->right, code + "1", codes);
+}
+
+void freeTree(Node* root) {
+    if (!root) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
+string formatChar(char c) {
+    if (c == ' ') return "' '";
+    if (c == '\t') return "'\\t'";
+    if (c == '\n') return "'\\n'";
+    if (c == '\'') return "'\\''";
+    return string("'") + c + "'";
+}
+
+int main() {
+    string text;
+    cout << "Enter the line\n";
+    getline(cin, text);
+
+    if (text.empty()) {
+        cout << "Empty string.\n";
+        return 0;
+    }
+
+    map<char, int> freq;
+    for (char c : text) {
+        freq[c]++;
+    }
+
+    priority_queue<Node*, vector<Node*>, Compare> pq;
+    for (auto& p : freq) {
+        pq.push(new Node(p.first, p.second));
+    }
+
+    if (pq.size() == 1) {
+        Node* only = pq.top();
+        pq.pop();
+
+        map<char, string> codes;
+        codes[only->ch] = "0";
+
+        cout << left
+            << setw(12) << "Symbol"
+            << setw(12) << "Frequency"
+            << "Huffman Code\n";
+        cout << "------      ---------    ------------\n";
+        cout << left
+            << setw(12) << formatChar(only->ch)
+            << setw(12) << only->freq
+            << codes[only->ch] << "\n";
+
+        delete only;
+        return 0;
+    }
+
+    while (pq.size() > 1) {
+        Node* left = pq.top(); pq.pop();
+        Node* right = pq.top(); pq.pop();
+
+        Node* parent = new Node('\0', left->freq + right->freq);
+        parent->left = left;
+        parent->right = right;
+        pq.push(parent);
+    }
+
+    Node* root = pq.top();
+    map<char, string> codes;
+    buildCodes(root, "", codes);
+
+    vector<pair<char, int>> items(freq.begin(), freq.end());
+    sort(items.begin(), items.end(), [](const auto& a, const auto& b) {
+        if (a.second != b.second) return a.second > b.second;
+        return a.first < b.first;
+        });
+
+    cout << left
+        << setw(12) << "Symbol"
+        << setw(12) << "Frequency"
+        << "Huffman Code\n";
+    cout << "------      ---------    ------------\n";
+
+    for (auto& p : items) {
+        cout << left
+            << setw(12) << formatChar(p.first)
+            << setw(12) << p.second
+            << codes[p.first] << "\n";
+    }
+
+    freeTree(root);
+    return 0;
+}
